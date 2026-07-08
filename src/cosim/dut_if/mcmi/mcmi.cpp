@@ -350,6 +350,16 @@ void mcmi::process(const rv_tester_transactions::cosim::m_mcmi_bypass<>& m_mcmi_
         m.data = m_mcmi_bypass.data;
         m.data_vec = extract_bits_as_bitset(m_mcmi_bypass.data_vec, m.size * 8, 0);
 
+        // AMOCAS compare-fail: RTL still drains an mbbypass for the (subsequently cancelled)
+        // store, but architecturally no write occurs. Drop it here so whisper is never poked
+        // with a write op for a failed compare - otherwise checkStoreComplete/maskCoveredBytes
+        // asserts (instr.size_==0 vs a size-N bypass). The DUT AmoCasFail bit is resolved at
+        // DFP DF1, before the drain, so it is reliably present on the bypass.
+        if (m.amo && m.amo_op == AMOCAS && m_mcmi_bypass.amo_cas_fail) {
+          cvm::log(cvm::HIGH, "[mcmi] AMOCAS compare failed (DUT AmoCasFail) - dropping bypass, no write issued (tag={}, pa={:#x})\n", m.tag, m.pa);
+          return;
+        }
+
         if (m.amo && m.amo_op != SC && FLAGS_emulate_amo_arithmetic) {
           amo_writes_.emplace(m.tag, m);
           return;
@@ -617,13 +627,20 @@ bool mcmi::sc_failed(mem_t& write) {
 void mcmi::process_amo(mem_t& read) {
 
   if (amo_writes_.find(read.tag) == amo_writes_.end()) {
+    if (read.amo_op == AMOCAS) {
+      cvm::log(cvm::HIGH, "[mcmi] AMOCAS compare failed - no write issued (tag={}, loaded={:#x}, pa={:#x})\n",
+               read.tag, read.data, read.pa);
+      return;
+    }
     cvm::log(cvm::ERROR, "Error: [mcmi] Amo read with no matching bypass write - inst tag={}\n", read.tag);
     return;
   }
 
   mem_t m = amo_writes_.at(read.tag);
   m.cycle = read.cycle;
-  amo_modify_write_data(static_cast<amo_op>(m.amo_op), read.data, m.data, m.size);
+  // AMOCAS bypass already carries the correct write value (rs2); no arithmetic needed.
+  if (m.amo_op != AMOCAS)
+    amo_modify_write_data(static_cast<amo_op>(m.amo_op), read.data, m.data, m.size);
 
   bridge_->process_dut_mcm_bypass(m.hart, m, true);
   amo_writes_.erase(read.tag);

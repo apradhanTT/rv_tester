@@ -2571,7 +2571,10 @@ void bridge::process_dut_mcm_bypass(hart_id_t hart, mem_t& m, bool cache) {
     }
   }
 
-  if (m.v_ext) {
+  // AMOCAS.Q's 128-bit write is the only non-vector bypass whose data exceeds the 64-bit
+  // scalar value path; route just that (amo && >8B) through the wide vector bypass interface,
+  // which packs data_vec into the buffer. cbo.zero (>8B, value==0) stays on the scalar path.
+  if (m.v_ext || (m.amo && m.size > 8)) {
     std::vector<uint64_t> data_vec = create_dword_vec(m.data_vec);
     if ((!cvm::registry::messenger.call<whisperClient<uint64_t>::whisperMcmVecBypassRPC>(cvm::topology::get_from_hierarchy("TOP.PLATFORM.WHISPER_CLIENT", 0), hart, m.cycle, m.tag, m.pa, m.size, data_vec, m.elem_idx, m.field, cache, valid) || !valid) && FLAGS_whisper_client_check) {
       error("Hart {}: Failed mcm store bypass\n", hart);

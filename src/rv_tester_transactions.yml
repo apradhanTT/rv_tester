@@ -371,6 +371,8 @@ cosim:
                 width: 1
             amo_op:
                 width: 5
+            amo_cas_fail:
+                width: 1
             cbo:
                 width: 1
             attr:

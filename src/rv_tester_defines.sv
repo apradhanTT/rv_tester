@@ -185,6 +185,7 @@ package rv_tester_params;
     logic                       cbo  ;
     logic                       amo  ;
     logic [4:0]                 amo_op;
+    logic                       amo_cas_fail;
     logic                       v_ext;
     logic [36-1:0]              opcode;
     logic [7:0]                 field;
