@@ -8,7 +8,9 @@ This repository contains the verification collateral needed to interface with a 
 
 The DUT (the RISC-V core under test) is surrounded with everything needed to boot, stimulate, observe, and check the core. As the core executes, its retired instructions and memory ordering events are checked instruction-by-instruction against Whisper, while its bus traffic is serviced by a software system model of the surrounding platform.
 
+![RV_TESTER architecture](doc/rv_tester.png)
 
+RV_TESTER was accepted to RISC-V North America Summit 2025, wherein it was present as a poster!
 
 The main components involved here are:
 
@@ -19,7 +21,7 @@ The main components involved here are:
 - **AXI SW (transactor)** — Receives requests from the RISC-V CPU AXI bus and creates C++ transactions.
 - **AXI MST SW** — Converts C++ transactions into SystemVerilog bus-level activity.
 - **Sysmod** — System model that divides the address space per the memmap and routes requests to device models. See `[src/sysmod/](src/sysmod/README.md)`.
-- **Devices (CLINT, TRICKBOX, HTIF, DM, ...)** — Model device-specific functionality.
+- **Devices (CLINT, HTIF, DM, ...)** — Model device-specific functionality.
 - **Clocking & reset** — Per-domain clock generation, optional glitch-free clock-profile muxing for dynamic frequency switching, external-clock support, and cold/warm reset sequencing (including DUT-requested warm resets) across clock domains.
 - **Lifecycle & DPI bring-up** — Parses plusargs, seeds randomization, builds and tears down the `C++` object registry, and orders DPI initialization against reset so the `C++` side is ready before the core leaves reset.
 - **Termination & rerun** — Aggregates termination sources (DUT, cosim, sysmod/HTIF, DMI timeout, errors), drives a graceful quiesce/drain handshake, prints PASS metrics, and supports rerunning or warm-resetting a test.
@@ -28,15 +30,24 @@ The main components involved here are:
 
 ## Getting Started
 
-rv_tester builds with [Bazel](https://bazel.build/) (bzlmod).
+rv_tester builds with [Bazel](https://bazel.build/) 7 in bzlmod mode. Every
+invocation must pass `--config=bzlmod` (see `.bazelrc`); without it Bazel uses
+the legacy WORKSPACE path, which does not wire up all dependencies (e.g.
+`@rules_verilator`) and fails to load.
 
 ```sh
-# Build the exported targets
-bazel build //...
+# Build everything
+bazel-7 build //... --config=bzlmod
 
-# Run the tests
-bazel test //test/...
+# Build and run the tests
+bazel-7 test //test/... --config=bzlmod
 ```
+
+These mirror CI: the `smoke` job (the `smoke` entry of the `test` matrix in
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml)) builds and runs the test
+suite with `bazel-7 test //test/... --config=bzlmod --build_tests_only`, so a
+green `bazel-7 test //test/...` locally reproduces the CI smoke result. CI also
+runs the same recipe under `asan+ubsan` and `tsan`.
 
 Nested READMEs under `src/` (e.g. `src/cosim/`, `src/sysmod/`) document
 individual subsystems in more detail.
