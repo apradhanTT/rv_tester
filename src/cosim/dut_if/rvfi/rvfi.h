@@ -143,6 +143,7 @@ private:
   uint32_t cracked_flags_ = 0;
   bool cracked_ = false;
   gpr_s cracked_gpr_;
+  std::unordered_map<uint32_t, std::string> custom_uop_labels_{};
 
   std::unordered_map<uint64_t, mem_t> ifetch_reqs_;
   std::unordered_map<uint64_t, mem_t> amo_writes_;
