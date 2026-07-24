@@ -18,10 +18,14 @@
 #include <chrono>
 #include <cmath>
 #include <regex>
+#include <sstream>
 
 DEFINE_bool(rvfi, true, "Enable rvfi");
 DEFINE_bool(rvfi_log, true, "Enable rvfi logging");
 DEFINE_bool(rvfi_log_36b_uop, true, "rvfi log - print 36b uop instead of default 32b riscv opcode");
+DEFINE_string(rvfi_custom_uop_opcodes, "",
+              "comma-separated <hex_opcode>:<label> list of known custom micro-op words; "
+              "in the rvfi log these render as <label> instead of illegal (default: none)");
 DEFINE_bool(cosim, true, "Enable cosim checking");
 DEFINE_bool(r, false, "Reset Bridge on magic instruction, aligns with VCS -r switch");
 DEFINE_bool(cache_model_en, false, "Enable MCM Cache Model");
@@ -41,6 +45,15 @@ REGISTRY_register(rvfi, COSIM, cvm::registry::all);
 rvfi::rvfi(cvm::topology::loc_t loc, unsigned id)
     : log("h" + std::to_string(id) + "_dut_rvfi.log"), loc_(loc), id_(id) {
   whisper::initialize();
+
+  std::stringstream ss(FLAGS_rvfi_custom_uop_opcodes);
+  std::string entry;
+  while (std::getline(ss, entry, ',')) {
+    auto colon = entry.find(':');
+    if (colon == std::string::npos)
+      continue;
+    custom_uop_labels_[static_cast<uint32_t>(std::stoul(entry.substr(0, colon), nullptr, 0))] = entry.substr(colon + 1);
+  }
 
   if (FLAGS_cosim) {
     cvm::log(cvm::MEDIUM, "[RVFI loc {} id{}] Constructing bridge...\n", loc_, id_);
@@ -470,8 +483,7 @@ void rvfi::make_instr(const rv_tester_transactions::cosim::m_rvfi<>& m_rvfi, rv_
     instr.first_uop = m_rvfi.first_uop;
     instr.last_uop = m_rvfi.last_uop;
     instr.ucode = m_rvfi.ucode;
-    // Sticky across uops: any uop in a cracked sequence flags the architectural instr.
-    opcode_modified_ = opcode_modified_ || m_rvfi.opcode_modified;
+    opcode_modified_ = opcode_modified_ || m_rvfi.opcode_modified || custom_uop_labels_.count(m_rvfi.insn);
     instr.opcode_modified = opcode_modified_;
     if (m_rvfi.last_uop) {
       opcode_modified_ = false;
@@ -516,8 +528,7 @@ void rvfi::make_instr(const rv_tester_transactions::cosim::m_rvfi<>& m_rvfi, rv_
     instr.first_uop = false;
     instr.last_uop = m_rvfi.last_uop;
     instr.ucode = ucode_ || !m_rvfi.last_uop;
-    // Sticky across uops: any uop in a cracked sequence flags the architectural instr.
-    opcode_modified_ = opcode_modified_ || m_rvfi.opcode_modified;
+    opcode_modified_ = opcode_modified_ || m_rvfi.opcode_modified || custom_uop_labels_.count(m_rvfi.insn);
     instr.opcode_modified = opcode_modified_;
     if (m_rvfi.last_uop) {
       opcode_modified_ = false;
@@ -775,7 +786,9 @@ void rvfi::print_instr_resource(const rv_instr_t& instr, std::string resource_st
                                 (csr_addr_check >= 0x323) && (csr_addr_check <= 0x32A) &&
                                 instr.ucode && !instr.last_uop;
 
-  if (!instr.ucode || cracked_gpr_.valid) {
+  bool custom_cracked_op = custom_uop_labels_.count(instr.opcode) != 0;
+
+  if ((!instr.ucode || cracked_gpr_.valid) && !custom_cracked_op) {
     std::string instr_dis = whisper::disassemble(instr.opcode);
     std::string csr_replaced_instr = instr_dis;
     uint32_t csr_opcode = instr.opcode & 0x7F;
@@ -790,6 +803,8 @@ void rvfi::print_instr_resource(const rv_instr_t& instr, std::string resource_st
       std::string csr_replaced_instr, dummy_mhpmevent_instr = whisper::disassemble(instr.opcode);
       get_csr_name_instr(dummy_mhpmevent_instr, csr_replaced_instr);
       dut_log += fmt::format(" {} (microcode)", csr_replaced_instr);
+    } else if (custom_cracked_op) {
+      dut_log += fmt::format(" {}", custom_uop_labels_.at(instr.opcode));
     } else {
       dut_log += fmt::format(" {} (microcode)", cosim_util::get_nth_word(instr.disasm, 1));
     }
