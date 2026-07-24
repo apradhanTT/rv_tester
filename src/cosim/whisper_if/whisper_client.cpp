@@ -130,7 +130,7 @@ void whisperClient<URV>::configure() {
   cvm::registry::messenger.procedure<whisperMcmDWritebackRPC>(loc_, [this](int hart, uint64_t time, uint64_t addr, bool& valid) { return this->whisperMcmDWriteback(hart, time, addr, valid); });
   // Add MCM Dfetch RPC
   cvm::registry::messenger.procedure<whisperMcmDFetchRPC>(loc_, [this](int hart, uint64_t time, uint64_t addr, bool& valid) { return this->whisperMcmDFetch(hart, time, addr, valid); });
-  cvm::registry::messenger.procedure<whisperMcmDecode>(loc_, [this](int hart, uint64_t time, uint64_t tag, uint64_t addr, unsigned size, bool& valid) { return this->whisperMcmDecode(hart, time, tag, addr, size, valid); });
+  cvm::registry::messenger.procedure<whisperMcmDecodeRPC>(loc_, [this](int hart, uint64_t time, uint64_t tag, uint64_t addr, unsigned size, bool& valid) { return this->whisperMcmDecode(hart, time, tag, addr, size, valid); });
   cvm::registry::messenger.procedure<whisperMcmEndRPC>(loc_, [this](int hart, uint64_t time, bool& valid) { return this->whisperMcmEnd(hart, time, valid); });
   cvm::registry::messenger.procedure<whisperInjectExceptionRPC>(loc_, [this](int hart, bool isLoad, uint64_t code, unsigned elemIx, uint64_t addr, bool& valid) { return this->whisperInjectException(hart, isLoad, code, elemIx, addr, valid); });
   cvm::registry::messenger.procedure<whisperPokeRPC>(loc_, [this](int hart, uint64_t time, char resource, uint64_t addr, uint64_t value, bool cache, bool skipmem, bool& valid) { return this->whisperPoke(hart, time, resource, addr, value, cache, skipmem, valid); });

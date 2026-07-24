@@ -195,7 +195,7 @@ public:
   CVM_MESSENGER_procedure_call(whisperMcmDEvictRPC, bool(int, uint64_t, uint64_t, bool&));
   CVM_MESSENGER_procedure_call(whisperMcmDWritebackRPC, bool(int, uint64_t, uint64_t, bool&));
   CVM_MESSENGER_procedure_call(whisperMcmDFetchRPC, bool(int, uint64_t, uint64_t, bool&));
-  CVM_MESSENGER_procedure_call(whisperMcmDecode, bool(int hart, uint64_t time, uint64_t tag, uint64_t addr, unsigned size, bool& valid));
+  CVM_MESSENGER_procedure_call(whisperMcmDecodeRPC, bool(int, uint64_t, uint64_t, uint64_t, unsigned, bool&));
   CVM_MESSENGER_procedure_call(whisperMcmEndRPC, bool(int, uint64_t, bool&));
   CVM_MESSENGER_procedure_call(whisperInjectExceptionRPC, bool(int, bool, uint64_t, unsigned, uint64_t, bool&));
   CVM_MESSENGER_procedure_call(whisperPokeRPC, bool(int, uint64_t, char, uint64_t, uint64_t, bool, bool, bool&));
