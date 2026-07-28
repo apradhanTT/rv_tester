@@ -22,7 +22,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/tenstorrent/cvm:0.1.3
+      image: ghcr.io/tenstorrent/cvm:0.1.4
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
@@ -41,7 +41,7 @@ jobs:
     # Downstream consumers still run Bazel 6 + WORKSPACE.
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/tenstorrent/cvm:0.1.3
+      image: ghcr.io/tenstorrent/cvm:0.1.4
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
     # smoke / asan+ubsan / tsan share one recipe, differing only by config.
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/tenstorrent/cvm:0.1.3
+      image: ghcr.io/tenstorrent/cvm:0.1.4
     timeout-minutes: 180
     strategy:
       fail-fast: false
