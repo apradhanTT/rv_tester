@@ -1003,7 +1003,7 @@ bool whisperClient<URV>::whisperMcmDecode(int hart, uint64_t time, uint64_t tag,
   }
 
   valid = reply.type != WhisperMessageType::Invalid;
-  cvm::log(cvm::FULL, "dfetch valid : {}\n", valid);
+  cvm::log(cvm::FULL, "decode valid : {}\n", valid);
   return true;
 }
 
