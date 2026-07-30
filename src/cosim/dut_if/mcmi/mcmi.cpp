@@ -482,7 +482,7 @@ void mcmi::process(const rv_tester_transactions::cosim::m_mcmi_decode<>& m_mcmi_
   if (terminated_ || in_reset_)
     return;
 
-  if (patch_access(m_mcmi_decode.addr))
+  if (patch_fetch_access(m_mcmi_decode.addr))
     return;
 
   // A line-crossing 4B instruction arrives as two size-2 fragments sharing one
@@ -593,6 +593,15 @@ bool mcmi::patch_access(uint64_t addr) {
     if (addr == (pcontrol0 + (i * 0x10000)))
       return true;
   return false;
+}
+
+// mdecode ONLY. patch_mode_ filters handler code wherever c_ptvec relocated it;
+// the address window covers decodes before patch_mode_ latches. Kept separate
+// from patch_access() so other MCM events are unaffected.
+bool mcmi::patch_fetch_access(uint64_t addr) {
+  if (patch_mode_)
+    return true;
+  return addr >= patch_ram_lo && addr < patch_ram_hi;
 }
 
 bool mcmi::is_ncio(uint32_t mem_attr) {
