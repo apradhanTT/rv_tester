@@ -830,7 +830,7 @@ void rvfi::print_instr_resource(const rv_instr_t& instr, std::string resource_st
     dut_log += fmt::format(" (nmi: {})", nmi_to_string.count(static_cast<nmi>(instr.ncause)) ? nmi_to_string.at(static_cast<nmi>(instr.ncause)) : std::to_string(instr.ncause));
 
   if (instr.intr)
-    dut_log += fmt::format(" (interrupt: {})", (instr.icause != 0 || !intr_virt_mode_) ? intr_name(instr.icause) : std::to_string(instr.icause));
+    dut_log += fmt::format(" (interrupt: {})", (instr.icause != 0 || !intr_virt_mode_) ? intr_name((instr.icause + static_cast<int>(intr_virt_mode_))) : std::to_string(instr.icause));
 
   if (instr.excp)
     dut_log += fmt::format(" (exception: {})", excp_name(instr.ecause));
