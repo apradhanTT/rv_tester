@@ -220,8 +220,7 @@ bool whisperClient<URV>::constructSystem(std::shared_ptr<WdRiscv::Session<URV>>&
     if (standalone || FLAGS_whisper_redirect_stdin_in_cosim) {
       args_str.insert(args_str.end(), {"--stdin", FLAGS_whisper_stdin});
     } else {
-      cvm::log(cvm::MEDIUM,
-          "Ignoring +whisper_stdin in embedded cosim to preserve simv stdin\n");
+      cvm::log(cvm::MEDIUM, "Ignoring +whisper_stdin in embedded cosim to preserve simv stdin\n");
     }
   } else if (!standalone && FLAGS_whisper_redirect_stdin_in_cosim) {
     args_str.insert(args_str.end(), {"--stdin", "/dev/null"});
