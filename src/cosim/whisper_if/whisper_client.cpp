@@ -38,6 +38,8 @@ DEFINE_bool(whisper_log, true, "Enable whisper logging to iss_cosim.log and iss_
 DEFINE_bool(whisper_cosim_log, false, "Enable whisper logging to iss_cosim.log");
 DEFINE_bool(whisper_cmd_log, false, "Enable whisper logging to iss_cmd.log");
 DEFINE_string(whisper_stdin, "", "Redirect whisper stdin");
+DEFINE_bool(whisper_redirect_stdin_in_cosim, false,
+            "Allow embedded Whisper to redirect process stdin in cosim");
 DEFINE_string(whisper_stdout, "", "Redirect whisper stdout");
 DEFINE_string(whisper_stderr, "", "Redirect whisper stderr");
 DEFINE_string(whisper_json_path, "", "Path to whisper json config");
@@ -214,10 +216,15 @@ bool whisperClient<URV>::constructSystem(std::shared_ptr<WdRiscv::Session<URV>>&
   else if (!standalone)
     args_str.insert(args_str.end(), {"--stdout", "/dev/null"});
 
-  if (FLAGS_whisper_stdin != "")
-    args_str.insert(args_str.end(), {"--stdin", FLAGS_whisper_stdin});
-  else if (!standalone)
+  if (FLAGS_whisper_stdin != "") {
+    if (standalone || FLAGS_whisper_redirect_stdin_in_cosim) {
+      args_str.insert(args_str.end(), {"--stdin", FLAGS_whisper_stdin});
+    } else {
+      cvm::log(cvm::MEDIUM, "Ignoring +whisper_stdin in embedded cosim to preserve simv stdin\n");
+    }
+  } else if (!standalone && FLAGS_whisper_redirect_stdin_in_cosim) {
     args_str.insert(args_str.end(), {"--stdin", "/dev/null"});
+  }
 
   if (FLAGS_stee_secure_region != "")
     args_str.insert(args_str.end(), {"--steesr", FLAGS_stee_secure_region});
