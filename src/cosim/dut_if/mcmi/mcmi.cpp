@@ -485,6 +485,9 @@ void mcmi::process(const rv_tester_transactions::cosim::m_mcmi_decode<>& m_mcmi_
   if (patch_fetch_access(m_mcmi_decode.addr))
     return;
 
+  if (debug_fetch_access(m_mcmi_decode.addr))
+    return;
+
   // A line-crossing 4B instruction arrives as two size-2 fragments sharing one
   // tag, so each fragment is just an independent call - no special casing here.
   const unsigned size = std::popcount(m_mcmi_decode.mask);
@@ -602,6 +605,11 @@ bool mcmi::patch_fetch_access(uint64_t addr) {
   if (patch_mode_)
     return true;
   return addr >= patch_ram_lo && addr < patch_ram_hi;
+}
+
+// mdecode ONLY. Drop DM-window decodes so whisper keeps the poked debug opcode.
+bool mcmi::debug_fetch_access(uint64_t addr) {
+  return addr >= debug_mem_lo && addr < debug_mem_hi;
 }
 
 bool mcmi::is_ncio(uint32_t mem_attr) {
