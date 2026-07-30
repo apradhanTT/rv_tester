@@ -62,6 +62,7 @@ private:
 
   bool patch_access(uint64_t addr);
   bool patch_fetch_access(uint64_t addr);
+  bool debug_fetch_access(uint64_t addr);
   bool is_ncio(uint32_t mem_attr);
   bool check_axi_error(uint64_t addr);
   std::bitset<256> stringToBitset(const std::string& hexString);
