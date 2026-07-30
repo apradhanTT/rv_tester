@@ -168,6 +168,10 @@ bool whisperClient<URV>::constructSystem(std::shared_ptr<WdRiscv::Session<URV>>&
   cvm::log(cvm::HIGH, "Whisper config changed to: {}\n", config_file);
   args_str.insert(args_str.end(), {"--config", config_file});
   args_str.insert(args_str.end(), {"--cores", std::to_string(ncores)});
+
+  // Embedded cosim must never consume simv's stdin.  UCLI2Proc owns it.
+  if (!standalone && !FLAGS_whisper_redirect_stdin_in_cosim)
+    args_str.push_back("--noconinput");
   args_str.insert(args_str.end(), {"--nmivec", std::to_string(getNmiPc())});
   args_str.insert(args_str.end(), {"--nmevec", std::to_string(getNmiExceptionPc())});
 
