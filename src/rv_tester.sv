@@ -193,7 +193,7 @@ module rv_tester
 
   parameter int unsigned location = cvm_topology_gen::get_location (cvm_topology_gen::mods.TOP.PLATFORM.ID, 0);
 
-  `CVM_REGISTRY_SET_SCOPE(location)
+  import "DPI-C" context function int cvm_registry_set_scope(int unsigned location);
 
   bit gen_clocks = '0;
   bit gen_timestamp = '0;
@@ -421,6 +421,11 @@ module rv_tester
       begin
         $display("[RVTESTER]: new test");
         _ = rv_tester_parse_flags();
+        /* RVDE-31919 CVM_REGISTRY_SET_SCOPE
+        * The macro makes zEMI3 insert a 3-state cvm_registry_set_scope service state machine as the first machine in <inst>tester, shifting every other one down a slot.
+        * That retiming makes the always block miss the one-cycle deposited rv_tester_reset pulse → reset branch never runs → registry never built → hang at cycle ~11-12 with core_no_fetch stuck high.
+        */
+        _ = cvm_registry_set_scope(location);
         if (num_resets < 0)
           rv_tester_set_seed();
         rv_tester_cvm_error_handler();
