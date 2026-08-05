@@ -65,6 +65,7 @@ inline bool axi_sw_destroyed = false;
 extern "C" {
 void axi_sw_b(axi::id_t id, axi::resp_t resp, uint16_t latency);
 void axi_sw_r_8(axi::id_t id, axi::resp_t resp, const axi::datum_t* data, axi::last_t last, uint16_t latency);
+void axi_sw_r_16(axi::id_t id, axi::resp_t resp, const axi::datum_t* data, axi::last_t last, uint16_t latency);
 void axi_sw_r_32(axi::id_t id, axi::resp_t resp, const axi::datum_t* data, axi::last_t last, uint16_t latency);
 void axi_sw_r_64(axi::id_t id, axi::resp_t resp, const axi::datum_t* data, axi::last_t last, uint16_t latency);
 }
@@ -408,6 +409,9 @@ private:
       switch (dw) {
       case 64:
         _axi_sw::axi_sw_r_8(r.id, r.resp, r.data.data(), r.last, latency);
+        break;
+      case 128:
+        _axi_sw::axi_sw_r_16(r.id, r.resp, r.data.data(), r.last, latency);
         break;
       case 256:
         _axi_sw::axi_sw_r_32(r.id, r.resp, r.data.data(), r.last, latency);
