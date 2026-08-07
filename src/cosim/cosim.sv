@@ -435,7 +435,6 @@ module cosim
   bit [PA_WIDTH-1:0] debug_exit_pc;
   longint unsigned debug_entry_pc_offset_arg;
   longint unsigned debug_exit_pc_offset_arg;
-  int hart_enable_mask;
   int nharts;
   longint unsigned hart;
   bit boot_wfi;
@@ -1634,7 +1633,6 @@ end
       cosim_period <= cvm_plusargs::get_int("cosim_period");
       max_instructions <= cvm_plusargs::get_ulongint("max_instr");
       nharts <= cvm_plusargs::get_int("num_harts");
-      hart_enable_mask <= cvm_plusargs::get_int("hart_enable_mask");
       debug_entry_pc_offset_arg <= cvm_plusargs::get_ulongint("debug_entry_pc_offset");
       debug_exit_pc_offset_arg  <= cvm_plusargs::get_ulongint("debug_exit_pc_offset");
       //mcm_value  = cvm_plusargs::get_int("mcm");
