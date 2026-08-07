@@ -1013,4 +1013,11 @@ end
     assert(assertion_test_cycle == '0 || clocks != 64'(assertion_test_cycle)) else $error("assertion test");
   end
 
+  always @(posedge dut_clk[TB_CLK_IDX]) begin
+    if (!rv_tester_reset) begin
+      terminate_never_unknown: assert(!$isunknown(terminate))
+        else $error("<%0d> %m: terminate is X/Z (terminate=%b)", clocks, terminate);
+    end
+  end
+
 endmodule
