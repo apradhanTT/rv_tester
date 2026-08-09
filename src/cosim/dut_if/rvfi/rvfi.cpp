@@ -348,6 +348,7 @@ void rvfi::process(const rv_tester_transactions::cosim::m_mtime<>& m_mtime) {
   intr.timeCsr = m_mtime.timeCsr;
   intr.trap_intr = m_mtime.trap_intr;
   intr.size = m_mtime.size;
+  intr.stce_bit_clear = m_mtime.stce_bit_clear;
 
   if (FLAGS_rvfi_log)
     log(cvm::NONE, "#NA {} {} (time={:#x}, mtime={:#x}, size={}, cause={:#x})\n", intr.cycle, id_, intr.timeCsr, intr.mtime, intr.size, m_mtime.cause);

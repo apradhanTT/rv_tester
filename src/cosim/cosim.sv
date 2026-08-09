@@ -1546,6 +1546,8 @@ end
     assign m_mtimes[n].data.mip = ((64'(rvfi[n].csr_addr inside {C_STIMECMP})) << 5) | (64'((rvfi[n].csr_addr inside {C_VSTIMECMP, C_HTIMEDELTA})) << 6);
     assign m_mtimes[n].data.size = 8;
     assign m_mtimes[n].data.cause = 3'h3;
+    assign m_mtimes[n].data.stce_bit_clear = (rvfi[n].valid && 
+                                             (rvfi[n].csr_addr == C_MENVCFG && rvfi[n].csr_wmask[63] == 1'b1 && rvfi[n].csr_wdata[63] == 1'b0));
   end
 
   logic xtip_changes;
