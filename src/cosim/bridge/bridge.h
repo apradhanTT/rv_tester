@@ -203,6 +203,7 @@ private:
   void clear_nmi(hart_id_t hart, uint64_t time, uint64_t cause);
   void poke_mip(hart_id_t hart, uint64_t time, std::bitset<64> mip);
   void peek_mip(hart_id_t hart, uint64_t time, std::bitset<64>& mip);
+  void poke_time_csr(hart_id_t hart, uint64_t time, uint64_t time_csr, bool trap_intr = false);
   void peek_seip(hart_id_t hart, uint64_t time, bool& seip);
   void get_gp_reg(uint32_t reg, uint64_t& data);
   void get_fp_reg(uint32_t reg, uint64_t& data);
@@ -460,7 +461,9 @@ private:
 
   std::bitset<64> intr_during_trap_ = 0;
   std::bitset<64> intr_cleared_during_trap_ = 0;
+  rv_intr_t timer_state_{};
   bool intr_partially_deferred_ = false;
+  bool poke_time_csr_post_step_ = false;
   bool intr_undeferred_due_to_xret_intr_csr_ = false;
   bool nmi_undeferred_due_to_xret_intr_csr_ = false;
   bool snapshot_taken = false;

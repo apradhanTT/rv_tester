@@ -311,6 +311,7 @@ typedef struct rv_intr_s {
   uint8_t buserr_bit;
   uint64_t timeCsr;
   bool trap_intr;
+  bool stce_bit_clear;
 } rv_intr_t;
 
 typedef struct rv_nmi_s {
