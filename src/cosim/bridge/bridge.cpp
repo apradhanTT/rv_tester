@@ -1274,6 +1274,11 @@ void bridge::post_step_interrupt_check(hart_id_t hart, const rv_instr_t& d, cons
     intr_cleared_during_trap_.reset();
   }
 
+  if (poke_time_csr_post_step_) {
+    poke_time_csr(hart, d.cycle, timer_state_.timeCsr);
+    poke_time_csr_post_step_ = false;
+  }
+
   // Post step, update previous mip
   tmp_mip_prev_ = tmp_mip_latest_;
 }
@@ -2849,12 +2854,27 @@ void bridge::process_dut_timer(hart_id_t hart, rv_intr_t& i) {
       i.mtime = w_data | (i.mtime & ((1ull << (i.size * 8)) - 1));
     }
     // Poking Time CSR value to Whisper instead of MTIME value.
-    poke_resource(hart, i.cycle, 'c', time_.address, i.timeCsr);
-    peek_mip(hart, i.cycle, tmp_mip_latest_);
-    check_mip_change(tmp_mip_prev_, tmp_mip_latest_);
-    if (tmp_mip_prev_.to_ullong() != tmp_mip_latest_.to_ullong())
-      check_and_defer_interrupt(hart, i.cycle, tmp_mip_latest_, i.trap_intr);
+    if (i.stce_bit_clear) {
+      // Get stimecmp value
+      // Compare with time
+      // If STIP condition met then but STCE is deasserted
+      // Poke time csr to whisper in post step.
+      poke_time_csr_post_step_ = true;
+      bridge_log(cvm::MEDIUM, "<{}> Poking time csr to whisper in post step.\n", i.cycle);
+      timer_state_ = i;
+    } else
+      poke_time_csr(hart, i.cycle, i.timeCsr, i.trap_intr);
   }
+}
+
+void bridge::poke_time_csr(hart_id_t hart, uint64_t time, uint64_t time_csr, bool trap_intr) {
+  // Poke time csr to whisper
+  // Check mip change and accordingly defer interrupt
+  poke_resource(hart, time, 'c', time_.address, time_csr);
+  peek_mip(hart, time, tmp_mip_latest_);
+  check_mip_change(tmp_mip_prev_, tmp_mip_latest_);
+  if (tmp_mip_prev_.to_ullong() != tmp_mip_latest_.to_ullong())
+    check_and_defer_interrupt(hart, time, tmp_mip_latest_, trap_intr);
 }
 
 void bridge::process_dut_mtip(hart_id_t hart, uint64_t cycle, bool mtip, bool trap_intr) {
