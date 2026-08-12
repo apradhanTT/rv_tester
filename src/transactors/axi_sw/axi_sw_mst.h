@@ -17,6 +17,7 @@
 #include "rv_tester_transactions.hpp"
 
 #include "axi_sw_mst_plusargs.h"
+#include "axi_sw_mst_rpc.h"
 
 namespace _axi_sw_mst {
 extern "C" {
@@ -201,6 +202,7 @@ public:
         transactor::write_request_t>();
 
     cvm::registry::messenger.procedure<push_ar_no_id_rpc>(loc, [this](const axi::a_no_id_t& ar, axi::id_t& id) { return this->push_a_no_id(false, ar, id); });
+    cvm::registry::messenger.procedure<axi_sw_mst_push_ar_no_id_rpc>(loc, [this](const axi::a_no_id_t& ar, axi::id_t& id) { return this->push_a_no_id(false, ar, id); });
     cvm::registry::messenger.procedure<push_aw_no_id_rpc>(loc, [this](const axi::a_no_id_t& aw, axi::id_t& id) { return this->push_a_no_id(true, aw, id); });
     cvm::registry::messenger.procedure<push_w_rpc>(loc, [this](const axi::w_t& w) { return this->push_w(w); });
     cvm::registry::messenger.procedure<try_lock_rpc>(loc, [this]() { return this->try_lock(); });
