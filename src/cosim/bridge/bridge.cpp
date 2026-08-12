@@ -156,6 +156,8 @@ bridge::bridge(int num_harts, int xlen, int vlen, cvm::topology::loc_t loc, unsi
       "vsie",
       "sie",   // RVDE-11840
       "vxsat", // Vectors RVDE-17338
+      "vcsr",  // Vectors RVDE-17338
+      "vxrm",  // Vectors RVDE-17338
       "srmcfg",
       "tselect",
       "tdata1",
