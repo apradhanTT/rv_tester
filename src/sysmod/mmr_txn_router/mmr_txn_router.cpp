@@ -3,6 +3,8 @@
 
 #include "src/sysmod/mmr_txn_router/mmr_txn_router.h"
 
+#include <algorithm>
+
 mmr_txn_router::mmr_txn_router(const std::string& tag, uint64_t addr, size_t size, cvm::topology::loc_t loc, cvm::topology::loc_t axi_mst_loc)
     : device(tag, addr, size, loc, &mmr_txn_router::write, &mmr_txn_router::read, this), axi_mst_loc_l(axi_mst_loc) {
   cvm::log(cvm::HIGH, " [mmr_txn_router] Constructor \n");
@@ -21,7 +23,16 @@ cvm::messenger::task<void> mmr_txn_router::read(const transactor::read_t& r, dat
   cvm::registry::messenger.signal(axi_mst_loc_l, transactor::read_request_t{addr, length});
 
   auto resp = co_await cvm::registry::messenger.wait<axi::r_t>(channel);
-  data = resp.data;
+  // resp.data is a full bus-width beat from the AXI master; a narrow read's
+  // payload sits on the byte lanes addressed by addr (AXI lane placement).
+  // The device read contract wants the addressed bytes LSB-first.
+  if (!resp.data.empty() && length < resp.data.size()) {
+    size_t lane = addr % resp.data.size();
+    size_t n = std::min(length, resp.data.size() - lane);
+    data.assign(resp.data.begin() + lane, resp.data.begin() + lane + n);
+  } else {
+    data = resp.data;
+  }
   cvm::log(cvm::HIGH, "[mmr_txn_router] routing mmr read back to overlay: Addr = {:#x}\n", addr);
   co_return;
 }
