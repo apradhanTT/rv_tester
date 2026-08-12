@@ -488,12 +488,23 @@ public:
     transactions_.emplace_back(a);
 
     size_t pow2size = size_t(1) << a.size;
+    size_t bus_bytes = data_width_ >> 3;
     for (int32_t i = a.len; i >= 0; i--) {
-      axi::data_t data(data_width_ >> 3);
-      axi::strb_t strb(strb_width_);
+      // Build a full-bus-width beat: the DPI push (axi_sw_mst_w_*) always
+      // consumes a complete beat's worth of data/strobe, and AXI requires
+      // narrow-transfer bytes on the lanes addressed by AWADDR (addr % bus
+      // width), not packed at the LSB. req.data/req.strb carry the payload
+      // LSB-packed (byte 0 = byte at req.addr).
+      axi::data_t data(bus_bytes, 0);
+      axi::strb_t strb(strb_width_, false);
 
-      data.assign(req.data.begin() + pow2size * a.len, req.data.begin() + pow2size * a.len + pow2size);
-      strb.assign(req.strb.begin() + pow2size * a.len, req.strb.begin() + pow2size * a.len + pow2size);
+      size_t beat = size_t(a.len) - size_t(i);
+      size_t src = pow2size * beat;
+      size_t lane = (req.addr + src) % bus_bytes;
+      for (size_t b = 0; b < pow2size && (src + b) < req.data.size(); b++) {
+        data[lane + b] = req.data[src + b];
+        strb[lane + b] = req.strb[src + b];
+      }
       transactions_.emplace_back(axi::w_t{std::move(data), std::move(strb), i == 0});
     }
     push_transactions();
