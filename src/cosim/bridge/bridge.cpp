@@ -2521,8 +2521,13 @@ void bridge::process_dut_mcm_read(hart_id_t hart, mem_t& m, bool cache) {
     }
   }
 
-  if (m.v_ext) {
+  if (m.v_ext || (m.amo && m.size > 8)) {
     std::vector<uint64_t> data_vec = create_dword_vec(m.data_vec);
+    if (m.amo && m.size > 8)
+      print(cvm::HIGH,
+            "[WIDE_AMO_TRACE] stage=2_bridge_to_client op=read rpc=whisperMcmVecRead hart={} cycle={} tag={} "
+            "pa={:#x} size={} amo_op={} v_ext={} data_vec dword0={:#018x} dword1={:#018x}\n",
+            hart, m.cycle, m.tag, m.pa, m.size, m.amo_op, unsigned(m.v_ext), data_vec[0], data_vec[1]);
     if ((!cvm::registry::messenger.call<whisperClient<uint64_t>::whisperMcmVecReadRPC>(cvm::topology::get_from_hierarchy("TOP.PLATFORM.WHISPER_CLIENT", 0), hart, m.cycle, m.tag, m.pa, m.size, data_vec, m.elem_idx, m.field, cache, valid) || !valid) && FLAGS_whisper_client_check) {
       error("Hart {}: Failed mcm vec load\n", hart);
       return;
@@ -2585,6 +2590,11 @@ void bridge::process_dut_mcm_bypass(hart_id_t hart, mem_t& m, bool cache) {
   // which packs data_vec into the buffer. cbo.zero (>8B, value==0) stays on the scalar path.
   if (m.v_ext || (m.amo && m.size > 8)) {
     std::vector<uint64_t> data_vec = create_dword_vec(m.data_vec);
+    if (m.amo && m.size > 8)
+      print(cvm::HIGH,
+            "[WIDE_AMO_TRACE] stage=2_bridge_to_client op=bypass rpc=whisperMcmVecBypass hart={} cycle={} tag={} "
+            "pa={:#x} size={} amo_op={} v_ext={} data_vec dword0={:#018x} dword1={:#018x}\n",
+            hart, m.cycle, m.tag, m.pa, m.size, m.amo_op, unsigned(m.v_ext), data_vec[0], data_vec[1]);
     if ((!cvm::registry::messenger.call<whisperClient<uint64_t>::whisperMcmVecBypassRPC>(cvm::topology::get_from_hierarchy("TOP.PLATFORM.WHISPER_CLIENT", 0), hart, m.cycle, m.tag, m.pa, m.size, data_vec, m.elem_idx, m.field, cache, valid) || !valid) && FLAGS_whisper_client_check) {
       error("Hart {}: Failed mcm store bypass\n", hart);
       return;

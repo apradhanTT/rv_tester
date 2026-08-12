@@ -175,6 +175,17 @@ void mcmi::process(const rv_tester_transactions::cosim::m_mcmi_read<>& m_mcmi_re
   m.splat = m_mcmi_read.splat;
   uint8_t elemsize = m_mcmi_read.elem_size;
 
+  if (m.amo && m.size > 8) {
+    std::bitset<256> raw = m_mcmi_read.data_vec;
+    uint64_t raw_lo = (raw & std::bitset<256>(0xffffffffffffffffULL)).to_ullong();
+    uint64_t raw_hi = ((raw >> 64) & std::bitset<256>(0xffffffffffffffffULL)).to_ullong();
+    cvm::log(cvm::HIGH,
+             "[WIDE_AMO_TRACE] stage=1_sv_to_cpp_packet op=read hart={} cycle={} tag={} pa={:#x} size={} "
+             "amo=1 amo_op={} v_ext={} pkt.data(64b)={:#018x} pkt.data_vec(128b)=0x{:016x}{:016x}\n",
+             m.hart, m.cycle, m.tag, m.pa, m.size, m.amo_op, unsigned(m_mcmi_read.v_ext),
+             m_mcmi_read.data, raw_hi, raw_lo);
+  }
+
   // Handle SC
   // If read before bypass, store pass/fail result
   // If bypass before read, check pass/fail result and send/don't send bypass
@@ -353,6 +364,17 @@ void mcmi::process(const rv_tester_transactions::cosim::m_mcmi_bypass<>& m_mcmi_
         m.size = std::popcount(m_mcmi_bypass.mask);
         m.data = m_mcmi_bypass.data;
         m.data_vec = extract_bits_as_bitset(m_mcmi_bypass.data_vec, m.size * 8, 0);
+
+        if (m.amo && m.size > 8) {
+          std::bitset<256> raw = m_mcmi_bypass.data_vec;
+          uint64_t raw_lo = (raw & std::bitset<256>(0xffffffffffffffffULL)).to_ullong();
+          uint64_t raw_hi = ((raw >> 64) & std::bitset<256>(0xffffffffffffffffULL)).to_ullong();
+          cvm::log(cvm::HIGH,
+                   "[WIDE_AMO_TRACE] stage=1_sv_to_cpp_packet op=bypass hart={} cycle={} tag={} pa={:#x} size={} "
+                   "amo=1 amo_op={} v_ext={} pkt.data(64b)={:#018x} pkt.data_vec(128b)=0x{:016x}{:016x}\n",
+                   m.hart, m.cycle, m.tag, m.pa, m.size, m.amo_op, unsigned(m_mcmi_bypass.v_ext),
+                   m_mcmi_bypass.data, raw_hi, raw_lo);
+        }
 
         // AMOCAS compare-fail: RTL still drains an mbbypass for the (subsequently cancelled)
         // store, but architecturally no write occurs. Drop it here so whisper is never poked
