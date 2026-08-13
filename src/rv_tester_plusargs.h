@@ -22,6 +22,7 @@ DECLARE_string(axi_resp_decerr_addr);
 DECLARE_int32(axi_resp_slverr_threshold);
 DECLARE_int32(axi_resp_decerr_threshold);
 DECLARE_bool(offline_dpi);
+DECLARE_bool(offline_dpi_replay);
 DECLARE_bool(offline_dpi_test);
 DECLARE_string(axi_resp_slverr_pattern);
 DECLARE_string(axi_resp_decerr_pattern);
