@@ -22,7 +22,7 @@ public:
 
 private:
   cvm::topology::loc_t axi_mst_loc_l;
-  cvm::messenger::pool<axi::r_t>::channel_info channel;
+  cvm::messenger::pool<transactor::read_response_t>::channel_info read_resp_channel_;
   // Copy n bytes from the given integer, x, to the data iterator
   // following little endian convention. If n is larger than the size
   // of x, then copy zero bytes after copying the bytes of x.

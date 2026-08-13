@@ -189,6 +189,7 @@ def axi_sw_gen(name, packet, visibility = None, cc_attrs = {}, **kwargs):
           "@cvm//:logger",
           "@cvm//:bitmanip",
           "@cvm//:messenger",
+          "@rv_tester//src/transactors/axi_sw:axi_sw_mst_rpc",
           packet + "_cc",
         ],
         alwayslink = True,
