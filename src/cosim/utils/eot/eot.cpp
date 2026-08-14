@@ -57,7 +57,13 @@ void eot::configure() {
 
 void eot::init_tohost_addr() {
   resolve_tohost_addr();
-  cvm::registry::callbacks.push(loc_, [&]() { rv_tester_set_eot_addr(tohost_addr_); });
+  // FIXME: stopgap. The real fix is flipping the direction so SV pulls the addr
+  // via a DPI import instead of this push, which also closes the delivery race.
+  // Follow up PR coming with that change once its validated on a rebuilt model.
+  // Skip this in offline replay (zdpiReport) since there is no SV side and the push just errors out and kills the replay.
+  if (!FLAGS_offline_dpi_replay) {
+    cvm::registry::callbacks.push(loc_, [&]() { rv_tester_set_eot_addr(tohost_addr_); });
+  }
 }
 
 void eot::resolve_tohost_addr() {
