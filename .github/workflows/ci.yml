@@ -57,13 +57,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # The crash-handler death tests fork and install signal handlers, which
+        # clash with the sanitizers' own signal interception, so they are tagged
+        # "no-sanitizer" and filtered out of the asan/ubsan/tsan variants; the
+        # plain smoke variant runs them.
         include:
           - name: smoke
             flags: ""
           - name: asan+ubsan
-            flags: "--config=asan --config=ubsan"
+            flags: "--config=asan --config=ubsan --test_tag_filters=-no-sanitizer"
           - name: tsan
-            flags: "--features=tsan"
+            flags: "--features=tsan --test_tag_filters=-no-sanitizer"
     name: test (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v4

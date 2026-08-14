@@ -39,6 +39,23 @@ void rv_tester_safe_write(const char* s) {
   ssize_t n [[maybe_unused]] = ::write(STDERR_FILENO, s, std::strlen(s));
 }
 
+// Async-signal-safe write of a non-negative integer to stderr. Avoids
+// snprintf(), which is not on the async-signal-safe list; only ::write() is.
+void rv_tester_safe_write_int(int value) {
+  char buf[16];
+  unsigned v = (value < 0) ? 0u : static_cast<unsigned>(value);
+  int i = static_cast<int>(sizeof(buf));
+  if (v == 0) {
+    buf[--i] = '0';
+  } else {
+    while (v > 0 && i > 0) {
+      buf[--i] = static_cast<char>('0' + (v % 10));
+      v /= 10;
+    }
+  }
+  ssize_t n [[maybe_unused]] = ::write(STDERR_FILENO, buf + i, sizeof(buf) - i);
+}
+
 // Async-signal-safe backtrace dump. backtrace()/backtrace_symbols_fd() do not
 // allocate, so they are safe to call from a signal handler.
 void rv_tester_dump_backtrace_safe() {
@@ -111,7 +128,9 @@ void rv_tester_signal_handler(int signum) {
 
   rv_tester_safe_write("\n[rv_tester] FATAL: caught ");
   rv_tester_safe_write(rv_tester_signal_name(signum));
-  rv_tester_safe_write("\n");
+  rv_tester_safe_write(" (signal ");
+  rv_tester_safe_write_int(signum);
+  rv_tester_safe_write(")\n");
   rv_tester_dump_backtrace_safe();
 
   if (signum > 0 && signum < NSIG && rv_tester_prev_actionable(rv_tester_prev_action[signum])) {

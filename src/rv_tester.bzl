@@ -215,9 +215,6 @@ def rv_tester_gen(
         name = rv_tester_assert_dpi,
         srcs = ["@rv_tester//src:rv_tester_assert_handler.cpp"],
         deps = ["@cvm//:logger", "@cvm//:plusargs"],
-        # std::stacktrace is C++23 (repo default is c++20); the trailing -std wins.
-        # -lstdc++exp provides the stacktrace impl and propagates to dependent binaries.
-        copts = ["-std=c++23"],
         linkopts = ["-lstdc++exp"],
         alwayslink = True,
         visibility = visibility,
