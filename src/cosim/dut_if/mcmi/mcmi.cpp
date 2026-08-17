@@ -354,13 +354,9 @@ void mcmi::process(const rv_tester_transactions::cosim::m_mcmi_bypass<>& m_mcmi_
         m.data = m_mcmi_bypass.data;
         m.data_vec = extract_bits_as_bitset(m_mcmi_bypass.data_vec, m.size * 8, 0);
 
-        // AMOCAS compare-fail: RTL still drains an mbbypass for the (subsequently cancelled)
-        // store, but architecturally no write occurs. Drop it here so whisper is never poked
-        // with a write op for a failed compare - otherwise checkStoreComplete/maskCoveredBytes
-        // asserts (instr.size_==0 vs a size-N bypass). The DUT AmoCasFail bit is resolved at
-        // DFP DF1, before the drain, so it is reliably present on the bypass.
+        // Drop mbbypass on AMOCAS compare-fail; no architectural write occurs.
         if (m.amo && m.amo_op == AMOCAS && m_mcmi_bypass.amo_cas_fail) {
-          cvm::log(cvm::HIGH, "[mcmi] AMOCAS compare failed (DUT AmoCasFail) - dropping bypass, no write issued (tag={}, pa={:#x})\n", m.tag, m.pa);
+          cvm::log(cvm::HIGH, "[mcmi] AMOCAS compare failed - dropping bypass, no write issued (tag={}, pa={:#x})\n", m.tag, m.pa);
           return;
         }
 
