@@ -740,16 +740,6 @@ bool whisperClient<URV>::whisperMcmVecRead(int hart, uint64_t time, uint64_t ins
     req.buffer.at(i) = byte_value[i];
   }
 
-  {
-    std::string bytes_msb_first;
-    for (unsigned i = size; i > 0; --i)
-      bytes_msb_first += fmt::format("{:02x}", uint8_t(req.buffer.at(i - 1)));
-    cvm::log(cvm::HIGH,
-             "[WIDE_AMO_TRACE] stage=3_client_to_whisper op=read msg=McmRead hart={} time={} tag={} "
-             "req.address={:#x} req.size={} req.buffer(msb_first)=0x{}\n",
-             hart, time, instrTag, req.address, req.size, bytes_msb_first);
-  }
-
   WhisperMessage reply;
   if (not whisperCommand(req, reply))
     return false;
@@ -846,16 +836,6 @@ bool whisperClient<URV>::whisperMcmVecBypass(int hart, uint64_t time, uint64_t i
 
   for (unsigned i = 0; i < size; ++i) {
     req.buffer.at(i) = byte_value[i];
-  }
-
-  {
-    std::string bytes_msb_first;
-    for (unsigned i = size; i > 0; --i)
-      bytes_msb_first += fmt::format("{:02x}", uint8_t(req.buffer.at(i - 1)));
-    cvm::log(cvm::HIGH,
-             "[WIDE_AMO_TRACE] stage=3_client_to_whisper op=bypass msg=McmBypass hart={} time={} tag={} "
-             "req.address={:#x} req.size={} req.buffer(msb_first)=0x{}\n",
-             hart, time, instrTag, req.address, req.size, bytes_msb_first);
   }
 
   WhisperMessage reply;
