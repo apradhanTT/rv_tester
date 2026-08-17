@@ -884,6 +884,11 @@ end
   end
   assign saw_rvfi_intr_trap = saw_rvfi_intr_trap_d1 || (rvfi[0].trap && (get_trap_id(rvfi[0].cause) == rv_tester_pkg::INTR));
 
+  // Ucode sequence in flight this cycle (from previous cycle's serial state or any retire slot this cycle)
+  logic ucode_active, intr_during_ucode;
+  assign ucode_active = rvfi_ucode_S | rvfi_ucode[NRET-1];
+  assign intr_during_ucode = saw_rvfi_intr_trap | ucode_active;
+
   logic [63:0] mip_d1, mip_timer, mip_timer_d1;
   logic [63:0] core_clocks;
   logic seip_d1;
@@ -909,7 +914,7 @@ end
   assign m_interrupt_pends[0].data.seip_set = interrupt_pend.seip & ~seip_d1;
   assign m_interrupt_pends[0].data.seip_clr = ~interrupt_pend.seip & seip_d1;
   assign m_interrupt_pends[0].data.buserr_bit = interrupt_pend.buserr_bit;
-  assign m_interrupt_pends[0].data.trap_intr = saw_rvfi_intr_trap;
+  assign m_interrupt_pends[0].data.intr_during_ucode = intr_during_ucode;
 
   //-----------------------------------------------------------------------------------------------------------
   // PERIODIC STATE COMPARE feature enabled when cosim_period value > 0
@@ -1513,7 +1518,7 @@ end
   assign m_imsic_msis[0].data.cycle = clocks;
   assign m_imsic_msis[0].data.addr = imsic_msi.addr;
   assign m_imsic_msis[0].data.data = imsic_msi.data;
-  assign m_imsic_msis[0].data.trap_intr = saw_rvfi_intr_trap;
+  assign m_imsic_msis[0].data.intr_during_ucode = intr_during_ucode;
   assign m_imsic_msis[0].data.user = imsic_msi.user;
 
   // m_mtime
@@ -1541,7 +1546,7 @@ end
     assign m_mtimes[n].data.cycle = clocks;
     assign m_mtimes[n].data.mtime = mtime.Data;
     assign m_mtimes[n].data.timeCsr = timeCsr;
-    assign m_mtimes[n].data.trap_intr = saw_rvfi_intr_trap;
+    assign m_mtimes[n].data.intr_during_ucode = intr_during_ucode;
     assign m_mtimes[n].data.mip = ((64'(rvfi[n].csr_addr inside {C_STIMECMP})) << 5) | (64'((rvfi[n].csr_addr inside {C_VSTIMECMP, C_HTIMEDELTA})) << 6);
     assign m_mtimes[n].data.size = 8;
     assign m_mtimes[n].data.cause = 3'h3;
@@ -1560,7 +1565,7 @@ end
   assign m_mtimes[NRET].data.cycle = clocks;
   assign m_mtimes[NRET].data.mtime = mtime.Data;
   assign m_mtimes[NRET].data.timeCsr = mtime.WriteValid ? mtime.Data : timeCsr;
-  assign m_mtimes[NRET].data.trap_intr = saw_rvfi_intr_trap;
+  assign m_mtimes[NRET].data.intr_during_ucode = intr_during_ucode;
   assign m_mtimes[NRET].data.mip = mip_timer;
   assign m_mtimes[NRET].data.size = 8;
   assign m_mtimes[NRET].data.cause = mtime.WriteValid ? 3'h1 :
@@ -1580,7 +1585,7 @@ end
   assign m_mtips[0].valid = ~suppress_interrupts && rvfi_enabled && (mtip_rise | mtip_fall);
   assign m_mtips[0].data.location = location;
   assign m_mtips[0].data.mtip = MTIP;
-  assign m_mtips[0].data.trap_intr = saw_rvfi_intr_trap;
+  assign m_mtips[0].data.intr_during_ucode = intr_during_ucode;
   assign m_mtips[0].data.cycle = clocks;
 
   //--------------------------------------------------------------------
