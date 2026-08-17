@@ -306,7 +306,7 @@ void rvfi::process(const rv_tester_transactions::cosim::m_interrupt_pend<>& m_in
   intr.seip_set = m_interrupt_pend.seip_set;
   intr.seip_clr = m_interrupt_pend.seip_clr;
   intr.buserr_bit = m_interrupt_pend.buserr_bit;
-  intr.trap_intr = m_interrupt_pend.trap_intr;
+  intr.intr_during_ucode = m_interrupt_pend.intr_during_ucode;
 
   std::string dut_log;
   dut_log += fmt::format("#NA {} {} {} ({} : mip={:#x} : ", intr.cycle, m_interrupt_pend.core_cycle, id_, intr.hw ? "hw" : "sw", intr.mip.to_ullong());
@@ -346,7 +346,7 @@ void rvfi::process(const rv_tester_transactions::cosim::m_mtime<>& m_mtime) {
   intr.mip = std::bitset<64>(m_mtime.mip);
   intr.mtime = m_mtime.mtime;
   intr.timeCsr = m_mtime.timeCsr;
-  intr.trap_intr = m_mtime.trap_intr;
+  intr.intr_during_ucode = m_mtime.intr_during_ucode;
   intr.size = m_mtime.size;
   intr.stce_bit_clear = m_mtime.stce_bit_clear;
 
@@ -368,7 +368,7 @@ void rvfi::process(const rv_tester_transactions::cosim::m_mtip<>& m_mtip) {
 
   if (!FLAGS_cosim)
     return;
-  bridge_->process_dut_mtip(id_, m_mtip.cycle, m_mtip.mtip, m_mtip.trap_intr);
+  bridge_->process_dut_mtip(id_, m_mtip.cycle, m_mtip.mtip, m_mtip.intr_during_ucode);
 }
 
 void rvfi::process(const rv_tester_transactions::cosim::m_core_nmi<>& m_core_nmi) {
@@ -404,7 +404,7 @@ void rvfi::process(const rv_tester_transactions::cosim::m_imsic_msi<>& m_imsic_m
   mem.cycle = m_imsic_msi.cycle;
   mem.pa = m_imsic_msi.addr;
   mem.data = m_imsic_msi.data;
-  mem.trap_intr = m_imsic_msi.trap_intr;
+  mem.intr_during_ucode = m_imsic_msi.intr_during_ucode;
   mem.size = 4;
 
   if (FLAGS_rvfi_log && (mem.data != 0))
