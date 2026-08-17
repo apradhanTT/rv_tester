@@ -1319,6 +1319,7 @@ end
     assign m_mcmi_bypasss[n].data.elem_idx = mcmi_bypass[n].elem_idx;
     assign m_mcmi_bypasss[n].data.amo = mcmi_bypass[n].amo;
     assign m_mcmi_bypasss[n].data.amo_op = mcmi_bypass[n].amo_op;
+    assign m_mcmi_bypasss[n].data.amo_cas_fail = mcmi_bypass[n].amo_cas_fail;
     assign m_mcmi_bypasss[n].data.attr = mcmi_bypass[n].attr;
     //-------------------------------------------------------------------------------------------
     // End-Of-Test logic:  memory write to designated address

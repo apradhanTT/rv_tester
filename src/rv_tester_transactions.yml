@@ -295,7 +295,7 @@ cosim:
             v_ext:
                 width: 1
             data_vec:
-                qualify: v_ext
+                qualify: "{data}.v_ext || {data}.amo"
                 width: ${TOP.PLATFORM.VLEN}
             field:
                 qualify: v_ext
@@ -373,6 +373,8 @@ cosim:
                 width: 1
             amo_op:
                 width: 5
+            amo_cas_fail:
+                width: 1
             cbo:
                 width: 1
             attr:
@@ -380,7 +382,7 @@ cosim:
             v_ext:
                 width: 1
             data_vec:
-                qualify: v_ext
+                qualify: "{data}.v_ext || {data}.amo"
                 width: ${TOP.PLATFORM.VLEN}
             elem_idx:
                 qualify: v_ext
