@@ -112,7 +112,7 @@ module rv_tester
 
   //import "DPI-C" function void rv_tester_streaming_dpi_init();
   import "DPI-C" function void rv_tester_streaming_dpi_shutdown();
-  import "DPI-C" function int rv_tester_parse_flags(); // dummy return value so that this gets called immediately. need this to happen before any other DPIs are called.
+  import "DPI-C" function int rv_tester_init(); // dummy return value so that this gets called immediately. need this to happen before any other DPIs are called.
   import "DPI-C" function void rv_tester_set_seed();
   import "DPI-C" context function void rv_tester_cvm_error_handler();
   import "DPI-C" context function void rv_tester_parse_memmap(int unsigned no_addr_rules, int num_ways, int num_sets, int num_blocks, int addr_width, int data_width);
@@ -420,7 +420,7 @@ module rv_tester
       if (rv_tester_reset || (rvt_reload && $test$plusargs("whisper_loadfrom")))
       begin
         $display("[RVTESTER]: new test");
-        _ = rv_tester_parse_flags();
+        _ = rv_tester_init();
         /* RVDE-31919 CVM_REGISTRY_SET_SCOPE
         * The macro makes zEMI3 insert a 3-state cvm_registry_set_scope service state machine as the first machine in <inst>tester, shifting every other one down a slot.
         * That retiming makes the always block miss the one-cycle deposited rv_tester_reset pulse → reset branch never runs → registry never built → hang at cycle ~11-12 with core_no_fetch stuck high.
