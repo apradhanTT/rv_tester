@@ -109,11 +109,11 @@ def rv_tester_external_deps():
         url = "https://github.com/tenstorrent/CoreArchChecker/archive/{commit}.tar.gz".format(commit = CoreArchChecker_hash),
     )
 
-    mem_manager_hash = "185e4dd9c31799c62ea15a3efc960f1d52416888"
+    mem_manager_hash = "488f84845274d8a11ded8f658245fe3499d3f6f8"
     maybe(
         http_archive,
         name = "mem_manager",
-        sha256 = "ad504949f0c5fc12573cc22d814f693c5d44a067181019b36b33fd1a3be989d5",
+        sha256 = "dc8a2e8ad453aee808d5178770dde621034d595cbae904a911d57ef7f19bc9e3",
         strip_prefix = "mem-manager-{commit}".format(commit = mem_manager_hash),
         url = "https://github.com/tenstorrent/mem-manager/archive/{commit}.tar.gz".format(commit = mem_manager_hash),
         patches = ["@rv_tester//bazel:mem_manager_use_bcr_lz4.patch"],
